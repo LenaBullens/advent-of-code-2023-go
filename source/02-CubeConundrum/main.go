@@ -21,6 +21,10 @@ type Hand struct {
 }
 
 func main() {
+	part2()
+}
+
+func part1() {
 	input := helper.ReadLines("input.txt")
 
 	var games []Game
@@ -31,10 +35,27 @@ func main() {
 
 	sum := 0
 	for _, game := range games {
-		valid, id := evaluateGame(game, 12, 13, 14)
+		valid, id := evaluateGame1(game, 12, 13, 14)
 		if valid {
 			sum = sum + id
 		}
+	}
+
+	fmt.Println(sum)
+}
+
+func part2() {
+	input := helper.ReadLines("input.txt")
+
+	var games []Game
+	for _, line := range input {
+		game := parseLine(line)
+		games = append(games, game)
+	}
+
+	sum := 0
+	for _, game := range games {
+		sum = sum + evaluateGame2(game)
 	}
 
 	fmt.Println(sum)
@@ -85,11 +106,29 @@ func parseLine(line string) Game {
 	return game
 }
 
-func evaluateGame(game Game, red int, green int, blue int) (bool, int) {
+func evaluateGame1(game Game, red int, green int, blue int) (bool, int) {
 	for _, hand := range game.Hands {
 		if (hand.Red > red) || (hand.Green > green) || (hand.Blue > blue) {
 			return false, 0
 		}
 	}
 	return true, game.Id
+}
+
+func evaluateGame2(game Game) int {
+	redMin := 0
+	greenMin := 0
+	blueMin := 0
+	for _, hand := range game.Hands {
+		if hand.Red > redMin {
+			redMin = hand.Red
+		}
+		if hand.Green > greenMin {
+			greenMin = hand.Green
+		}
+		if hand.Blue > blueMin {
+			blueMin = hand.Blue
+		}
+	}
+	return redMin * greenMin * blueMin
 }
