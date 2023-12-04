@@ -15,6 +15,7 @@ type Point struct {
 }
 
 func main() {
+	part1()
 	part2()
 }
 
