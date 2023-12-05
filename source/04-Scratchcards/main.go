@@ -12,10 +12,56 @@ import (
 type Card struct {
 	WinningNumbers map[int]bool
 	Numbers        []int
+	Amount         int
 }
 
 func main() {
+	part2()
+}
+
+func part1() {
 	lines := helper.ReadLines("input.txt")
+
+	cards := parseInput(lines)
+
+	sum := 0
+
+	for _, card := range cards {
+		nbOfMatches := nbOfMatches(card)
+		score := 0
+
+		if nbOfMatches >= 1 {
+			score = 1
+		}
+		for i := 0; i < (nbOfMatches - 1); i++ {
+			score = score * 2
+		}
+
+		sum = sum + score
+	}
+
+	fmt.Println(sum)
+}
+
+func part2() {
+	lines := helper.ReadLines("input.txt")
+
+	cards := parseInput(lines)
+
+	sum := 0
+
+	for i := 0; i < len(cards); i++ {
+		nbOfMatches := nbOfMatches(cards[i])
+		for j := 1; j <= nbOfMatches; j++ {
+			cards[i+j].Amount = cards[i+j].Amount + cards[i].Amount
+		}
+		sum = sum + cards[i].Amount
+	}
+
+	fmt.Println(sum)
+}
+
+func parseInput(lines []string) []Card {
 	var cards []Card
 
 	for _, line := range lines {
@@ -51,29 +97,20 @@ func main() {
 			}
 		}
 		card.Numbers = numbers
+		card.Amount = 1
 
 		cards = append(cards, card)
 	}
 
-	sum := 0
+	return cards
+}
 
-	for _, card := range cards {
-		nbOfMatches := 0
-		for _, number := range card.Numbers {
-			if card.WinningNumbers[number] {
-				nbOfMatches++
-			}
+func nbOfMatches(card Card) int {
+	nbOfMatches := 0
+	for _, number := range card.Numbers {
+		if card.WinningNumbers[number] {
+			nbOfMatches++
 		}
-		score := 0
-		if nbOfMatches >= 1 {
-			score = 1
-		}
-		for i := 0; i < (nbOfMatches - 1); i++ {
-			score = score * 2
-		}
-
-		sum = sum + score
 	}
-
-	fmt.Println(sum)
+	return nbOfMatches
 }
