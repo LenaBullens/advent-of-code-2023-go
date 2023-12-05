@@ -16,6 +16,7 @@ type Card struct {
 }
 
 func main() {
+	part1()
 	part2()
 }
 
