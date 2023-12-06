@@ -12,6 +12,7 @@ type Race struct {
 
 func main() {
 	part1()
+	part2()
 }
 
 func part1() {
@@ -24,6 +25,21 @@ func part1() {
 	races = append(races, Race{Time: 70, Distance: 1142})
 	races = append(races, Race{Time: 82, Distance: 1295})
 	races = append(races, Race{Time: 75, Distance: 1253})
+
+	result := 1
+
+	for _, race := range races {
+		result = result * evaluateRace(race)
+	}
+
+	fmt.Println(result)
+}
+
+func part2() {
+	var races []Race
+	//races = append(races, Race{Time: 71530, Distance: 940200})
+
+	races = append(races, Race{Time: 54708275, Distance: 239114212951253})
 
 	result := 1
 
