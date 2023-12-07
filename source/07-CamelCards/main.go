@@ -11,11 +11,15 @@ import (
 )
 
 func main() {
+	camelCards(true)
+}
+
+func camelCards(includeJoker bool) {
 	lines := helper.ReadLines("input.txt")
 
 	var hands []Hand
 	for _, line := range lines {
-		hand := NewHand(line)
+		hand := NewHand(line, includeJoker)
 		hands = append(hands, hand)
 	}
 
@@ -36,6 +40,7 @@ type Card int
 
 const (
 	InvalidCard = Card(0)
+	Joker       = Card(1)
 	Two         = Card(2)
 	Three       = Card(3)
 	Four        = Card(4)
@@ -51,7 +56,7 @@ const (
 	Ace         = Card(14)
 )
 
-func parseCard(input string) Card {
+func parseCard(input string, includeJoker bool) Card {
 	switch input {
 	case "2":
 		return Two
@@ -72,7 +77,11 @@ func parseCard(input string) Card {
 	case "T":
 		return Ten
 	case "J":
-		return Jack
+		if includeJoker {
+			return Joker
+		} else {
+			return Jack
+		}
 	case "Q":
 		return Queen
 	case "K":
@@ -102,14 +111,14 @@ type Hand struct {
 	Bid   int
 }
 
-func NewHand(input string) Hand {
+func NewHand(input string, includeJoker bool) Hand {
 	result := Hand{}
 	splitString := strings.Split(input, " ")
 
 	var cards []Card
 	cardStrings := strings.Split(splitString[0], "")
 	for _, cardString := range cardStrings {
-		card := parseCard(cardString)
+		card := parseCard(cardString, includeJoker)
 		cards = append(cards, card)
 	}
 	result.Cards = cards
@@ -120,12 +129,121 @@ func NewHand(input string) Hand {
 	}
 	result.Bid = bid
 
-	result.Type = evaluateType(result.Cards)
-
+	if includeJoker {
+		result.Type = evaluateTypeWithJoker(result.Cards)
+	} else {
+		result.Type = evaluateType(result.Cards)
+	}
 	return result
 }
 
 func evaluateType(cards []Card) Type {
+	// Count the number of uniques
+	set := make(map[Card]bool)
+	for _, card := range cards {
+		set[card] = true
+	}
+	nbOfUniques := len(set)
+	if nbOfUniques == 1 {
+		// All the same card => five of a kind
+		return FiveOfAKind
+	}
+	if nbOfUniques == 2 {
+		// Two different cards => AAABB (full house) or AAAAB (four of a kind)
+		// 1-4 is the same as 4-1 | 2-3 is the same as 3-2
+
+		// Count occurence of one card, if it's 4 or 1 => four of a kind, otherwise full house
+		firstCard := InvalidCard
+		firstAmount := 0
+		for _, card := range cards {
+			if firstCard == InvalidCard {
+				firstCard = card
+			}
+			if firstCard == card {
+				firstAmount++
+			}
+		}
+		if firstAmount == 1 || firstAmount == 4 {
+			return FourOfAKind
+		} else {
+			return FullHouse
+		}
+	}
+	if nbOfUniques == 3 {
+		// Three different cards => AAABC (three of a kind) or AABBC (two pair)
+
+		// Count occurence of two cards, if it's 3 & 1, 1 & 3 or 1 & 1 => three of a kind, otherwise two pair.
+		firstCard := InvalidCard
+		firstAmount := 0
+		secondCard := InvalidCard
+		secondAmount := 0
+		for _, card := range cards {
+			if firstCard == InvalidCard {
+				firstCard = card
+			}
+			if firstCard == card {
+				firstAmount++
+			} else if secondCard == InvalidCard {
+				secondCard = card
+			}
+			if secondCard == card {
+				secondAmount++
+			}
+		}
+		if firstAmount == 3 || secondAmount == 3 || (firstAmount == 1 && secondAmount == 1) {
+			return ThreeOfAKind
+		} else {
+			return TwoPair
+		}
+	}
+	if nbOfUniques == 4 {
+		// One duplicate => one pair
+		return OnePair
+	}
+	if nbOfUniques == 5 {
+		// All different cards => high card
+		return HighCard
+	}
+
+	return InvalidType
+}
+
+func evaluateTypeWithJoker(cards []Card) Type {
+	// Find jokers
+	nbOfJokers := 0
+	for _, card := range cards {
+		if card == Joker {
+			nbOfJokers++
+		}
+	}
+
+	if nbOfJokers > 0 {
+		// It is always advantageous to replace jokers with most occurring card. First find the most occuring non-joker card.
+		occurrences := make(map[Card]int)
+		for _, card := range cards {
+			occurrences[card] = occurrences[card] + 1
+		}
+
+		mostOccurring := InvalidCard
+		amount := 0
+		for card, n := range occurrences {
+			if n > amount && card != Joker {
+				mostOccurring = card
+				amount = n
+			}
+		}
+
+		var copyOfCards []Card
+		for _, card := range cards {
+			if card == Joker {
+				copyOfCards = append(copyOfCards, mostOccurring)
+			} else {
+				copyOfCards = append(copyOfCards, card)
+			}
+		}
+		cards = copyOfCards
+	}
+
 	// Count the number of uniques
 	set := make(map[Card]bool)
 	for _, card := range cards {
