@@ -6,3 +6,7 @@ Find positions of both the digits and the words and "pick" the best ones.
 
 ## Day 5
 For part 2, resolve the mapping in reverse, starting with the lowest location number.
+
+## Day 6
+We can use a set to find out how many unique cards there are in a hand. Certain types can only occur at 
+a certain number of uniques.
