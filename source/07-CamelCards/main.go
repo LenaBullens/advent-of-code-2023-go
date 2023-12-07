@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	camelCards(false)
 	camelCards(true)
 }
 
